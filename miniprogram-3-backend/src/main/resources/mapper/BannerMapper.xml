@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songjia.textile.mapper.BannerMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.songjia.textile.entity.Banner">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="type" property="type" jdbcType="VARCHAR"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="image_url" property="imageUrl" jdbcType="VARCHAR"/>
+        <result column="link_url" property="linkUrl" jdbcType="VARCHAR"/>
+        <result column="link_type" property="linkType" jdbcType="VARCHAR"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="BOOLEAN"/>
+        <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
+        <result column="end_time" property="endTime" jdbcType="TIMESTAMP"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础查询列 -->
+    <sql id="Base_Column_List">
+        id, type, title, image_url, link_url, link_type, sort_order, status,
+        start_time, end_time, created_at
+    </sql>
+
+    <!-- 根据状态查找轮播图 -->
+    <select id="findByStatusOrderBySortOrderAsc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM banners
+        <if test="status != null">
+            WHERE status = #{status}
+        </if>
+        ORDER BY sort_order ASC
+    </select>
+
+    <!-- 查找当前有效的轮播图 -->
+    <select id="findValidBanners" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM banners
+        WHERE status = true
+        AND (start_time IS NULL OR start_time &lt;= #{currentTime})
+        AND (end_time IS NULL OR end_time &gt;= #{currentTime})
+        ORDER BY sort_order ASC
+    </select>
+
+    <!-- 根据ID查找轮播图 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM banners
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据类型和状态查找轮播图 -->
+    <select id="findByTypeAndStatus" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM banners
+        WHERE type = #{type}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY sort_order ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>imgbb 图片链接测试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c5f2d;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #2c5f2d;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #4a7c59;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #2c5f2d;
+            border-radius: 4px;
+        }
+        .success {
+            color: #2c5f2d;
+            font-weight: bold;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .preview-img {
+            max-width: 100%;
+            margin-top: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        code {
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .tip {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 imgbb 图片链接转换工具</h1>
+
+        <div class="tip">
+            <strong>💡 提示：</strong>imgbb 分享链接（如 https://ibb.co/xxxxx）无法直接在小程序中使用，需要转换为直接图片链接。
+        </div>
+
+        <div class="input-group">
+            <label>1. 粘贴你的 imgbb 分享链接：</label>
+            <input type="text" id="shareUrl" placeholder="https://ibb.co/93m2M16P" value="https://ibb.co/93m2M16P">
+        </div>
+
+        <button onclick="openInNewTab()">在新标签页打开</button>
+        <button onclick="testImage()">测试图片</button>
+
+        <div id="result" class="result" style="display:none;">
+            <h3>转换结果：</h3>
+            <div id="resultContent"></div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #e8f5e9; border-radius: 4px;">
+            <h3>📋 正确做法：</h3>
+            <ol>
+                <li>访问你的 imgbb 分享链接</li>
+                <li>在页面上找到图片</li>
+                <li>右键点击图片 → "复制图片地址" 或 "Copy image address"</li>
+                <li>粘贴到数据库中的 <code>image_url</code> 字段</li>
+            </ol>
+            <p><strong>正确的链接格式：</strong> <code>https://i.ibb.co/xxxxxx/filename.jpg</code></p>
+        </div>
+    </div>
+
+    <script>
+        function openInNewTab() {
+            const url = document.getElementById('shareUrl').value;
+            if (!url) {
+                alert('请输入分享链接');
+                return;
+            }
+            window.open(url, '_blank');
+
+            const resultDiv = document.getElementById('result');
+            const contentDiv = document.getElementById('resultContent');
+            resultDiv.style.display = 'block';
+            contentDiv.innerHTML = `
+                <p class="success">✅ 已在新标签页打开分享链接</p>
+                <p><strong>接下来：</strong></p>
+                <ol>
+                    <li>在新打开的页面上找到图片</li>
+                    <li>右键点击图片</li>
+                    <li>选择"复制图片地址"（Chrome）或"Copy Image Address"</li>
+                    <li>粘贴到数据库的 image_url 字段</li>
+                </ol>
+            `;
+        }
+
+        function testImage() {
+            const url = document.getElementById('shareUrl').value;
+            if (!url) {
+                alert('请输入分享链接');
+                return;
+            }
+
+            const resultDiv = document.getElementById('result');
+            const contentDiv = document.getElementById('resultContent');
+            resultDiv.style.display = 'block';
+
+            // 尝试从分享链接提取ID
+            const match = url.match(/ibb\.co\/([a-zA-Z0-9]+)/);
+            if (!match) {
+                contentDiv.innerHTML = `<p class="error">❌ 无效的 imgbb 链接格式</p>`;
+                return;
+            }
+
+            contentDiv.innerHTML = `
+                <p class="error">❌ 这是一个分享页面链接，不是直接图片链接</p>
+                <p><strong>你输入的链接：</strong> <code>${url}</code></p>
+                <p><strong>问题：</strong>小程序无法加载HTML页面，需要直接的图片URL</p>
+                <hr>
+                <p><strong>解决方法：</strong></p>
+                <p>1. 点击上方"在新标签页打开"按钮</p>
+                <p>2. 在打开的页面上右键点击图片</p>
+                <p>3. 选择"复制图片地址"</p>
+                <p>4. 得到的链接应该类似：<code>https://i.ibb.co/xxxxx/image.jpg</code></p>
+            `;
+        }
+    </script>
+</body>
+</html>

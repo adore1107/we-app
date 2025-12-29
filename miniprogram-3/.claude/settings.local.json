@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run)",
+      "Bash(xargs:*)",
+      "Bash(npm install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(python3:*)",
+      "Bash(mkdir:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(java:*)",
+      "Read(//mnt/c/Users/Mayn/WeChatProjects/miniprogram-3-backend/src/main/resources/**)",
+      "Read(//mnt/c/Users/Mayn/WeChatProjects/miniprogram-3-backend/src/main/java/com/songjia/textile/**)",
+      "Read(//mnt/c/Users/Mayn/WeChatProjects/miniprogram-3-backend/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

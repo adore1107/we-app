@@ -1,0 +1,19 @@
+<t-tab-bar
+ value="{{active}}"
+ bindchange="onChange"
+ split="{{false}}"
+>
+	<t-tab-bar-item
+	 wx:for="{{list}}"
+	 wx:for-item="item"
+	 wx:for-index="index"
+	 wx:key="index"
+	>
+		<view class="custom-tab-bar-wrapper">
+			<view wx:if="{{item.icon === 'bookmark'}}" class="custom-icon bookmark-icon">★</view>
+			<t-icon wx:else prefix="wr" name="{{item.icon}}" size="48rpx" />
+			<view class="text">{{ item.text }}</view>
+		</view>
+	</t-tab-bar-item>
+</t-tab-bar>
+

@@ -1,0 +1,64 @@
+.inquiry-bar {
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+/* 固定定位样式 */
+.inquiry-bar.fixed {
+  position: fixed;
+  bottom: 0;
+}
+
+.inquiry-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100rpx;
+  padding: 0 32rpx;
+}
+
+.inquiry-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.count-text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.inquiry-btn {
+  background: #0052d9;
+  border-radius: 8rpx;
+  height: 72rpx;
+  padding: 0 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.inquiry-btn:active {
+  background: #0045b0;
+}
+
+.btn-text {
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+/* 安全区域适配 */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 非固定状态时的额外padding */
+.inquiry-bar:not(.fixed) {
+  margin-top: 20rpx;
+}

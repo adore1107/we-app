@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>规格参数测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .result { background: #f0f8ff; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .error { background: #ffe6e6; color: #d00; }
+        .success { background: #e6ffe6; color: #080; }
+    </style>
+</head>
+<body>
+    <h1>规格参数处理测试</h1>
+
+    <div class="test-section">
+        <h3>测试数据</h3>
+        <div id="test-data"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>处理结果</h3>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // 模拟从数据库获取的规格参数JSON字符串
+        const specificationsJson = '{"model": "MF-TECH-2024-MC1", "width": "180cm", "weight": "380g/m²", "function": "抗菌防螨 阻燃防水 耐磨耐洗 高强耐久", "certification": "ISO9001 CE认证", "flame_retardant": "B1级阻燃 阻燃时间≤2秒", "mite_resistance": "防螨率>92% 尘螨", "weaving_process": "60支多轴织造 经密320根/10cm 纬密280根/10cm", "finishing_process": "多功能整理 复合涂层处理 环保定型", "antibacterial_rate": "抗菌率>99% 大肠杆菌", "fabric_composition": "抗菌纤维40% 阻燃纤维35% 功能纤维25%"}';
+
+        document.getElementById('test-data').innerHTML = `<pre>${specificationsJson}</pre>`;
+
+        // 模拟前端的处理逻辑
+        function testSpecificationParsing() {
+            let specificationParams = [];
+
+            try {
+                console.log('规格参数JSON字符串:', specificationsJson);
+                const specObj = JSON.parse(specificationsJson);
+
+                // 定义参数显示名称和顺序
+                const nameMapping = {
+                    model: '型号',
+                    fabric_composition: '面料参数',
+                    weaving_process: '织造工艺',
+                    finishing_process: '后处理工艺',
+                    width: '门幅',
+                    weight: '克重',
+                    function: '功能特性',
+                    certification: '认证',
+                    flame_retardant: '阻燃性能',
+                    mite_resistance: '防螨性能',
+                    antibacterial_rate: '抗菌率'
+                };
+
+                const orderMapping = {
+                    model: 1,
+                    fabric_composition: 2,
+                    weaving_process: 3,
+                    finishing_process: 4,
+                    width: 5,
+                    weight: 6,
+                    function: 7,
+                    certification: 8,
+                    flame_retardant: 9,
+                    mite_resistance: 10,
+                    antibacterial_rate: 11
+                };
+
+                specificationParams = Object.entries(specObj)
+                    .filter(([key, value]) => value && value.trim() !== '')
+                    .map(([key, value]) => ({
+                        key: key,
+                        name: nameMapping[key] || key,
+                        value: value.toString(),
+                        order: orderMapping[key] || 999
+                    }))
+                    .sort((a, b) => a.order - b.order);
+
+                console.log('处理后的规格参数:', specificationParams);
+
+                // 显示结果
+                let resultHtml = '<div class="result success">';
+                resultHtml += `<h4>解析成功！共 ${specificationParams.length} 个规格参数:</h4>`;
+                resultHtml += '<ul>';
+                specificationParams.forEach((param, index) => {
+                    resultHtml += `<li><strong>${param.name}</strong>: ${param.value}</li>`;
+                });
+                resultHtml += '</ul>';
+                resultHtml += '</div>';
+
+                document.getElementById('result').innerHTML = resultHtml;
+
+            } catch (e) {
+                console.error('解析规格参数失败:', e);
+                document.getElementById('result').innerHTML = `
+                    <div class="result error">
+                        <h4>解析失败</h4>
+                        <p>错误信息: ${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 运行测试
+        testSpecificationParsing();
+    </script>
+</body>
+</html>

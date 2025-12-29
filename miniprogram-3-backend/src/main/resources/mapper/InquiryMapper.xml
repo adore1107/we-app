@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songjia.textile.mapper.InquiryMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.songjia.textile.entity.Inquiry">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="product_id" property="productId" jdbcType="INTEGER"/>
+        <result column="quantity" property="quantity" jdbcType="INTEGER"/>
+        <result column="message" property="message" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="admin_reply" property="adminReply" jdbcType="VARCHAR"/>
+        <result column="reply_time" property="replyTime" jdbcType="TIMESTAMP"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="deleted" property="deleted" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 基础查询列 -->
+    <sql id="Base_Column_List">
+        id, user_id, product_id, quantity, message, status, admin_reply,
+        reply_time, created_at, deleted
+    </sql>
+
+    <!-- 根据用户ID查找询价记录 -->
+    <select id="findByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM inquiries
+        WHERE deleted = 0
+        AND user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据状态查找询价记录 -->
+    <select id="findByStatus" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM inquiries
+        WHERE deleted = 0
+        AND status = #{status}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 统计询价数量 -->
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*)
+        FROM inquiries
+        WHERE deleted = 0
+        AND status = #{status}
+    </select>
+
+    <!-- 统计用户询价数量 -->
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM inquiries
+        WHERE deleted = 0
+        AND user_id = #{userId}
+    </select>
+
+</mapper>

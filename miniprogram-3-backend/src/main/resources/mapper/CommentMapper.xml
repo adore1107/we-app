@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songjia.textile.mapper.CommentMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.songjia.textile.entity.Comment">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="product_id" property="productId" jdbcType="INTEGER"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="rating" property="rating" jdbcType="INTEGER"/>
+        <result column="admin_reply" property="adminReply" jdbcType="VARCHAR"/>
+        <result column="reply_time" property="replyTime" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="BIT"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="deleted" property="deleted" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 包含用户信息的结果映射 -->
+    <resultMap id="CommentWithUserMap" type="com.songjia.textile.entity.Comment">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="product_id" property="productId" jdbcType="INTEGER"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="rating" property="rating" jdbcType="INTEGER"/>
+        <result column="admin_reply" property="adminReply" jdbcType="VARCHAR"/>
+        <result column="reply_time" property="replyTime" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="BIT"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="deleted" property="deleted" jdbcType="INTEGER"/>
+        <!-- 用户信息 -->
+        <result column="user_name" property="userName" jdbcType="VARCHAR"/>
+        <result column="user_avatar" property="userAvatar" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 基础查询列 -->
+    <sql id="Base_Column_List">
+        id, user_id, product_id, content, rating, admin_reply, reply_time, status, created_at, deleted
+    </sql>
+
+    <!-- 根据商品ID查找评论列表（分页，包含用户信息） -->
+    <select id="findByProductIdWithUser" resultMap="CommentWithUserMap">
+        SELECT
+            c.id,
+            c.user_id,
+            c.product_id,
+            c.content,
+            c.rating,
+            c.admin_reply,
+            c.reply_time,
+            c.status,
+            c.created_at,
+            c.deleted,
+            u.nickname AS user_name,
+            u.avatar_url AS user_avatar
+        FROM comments c
+        LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.product_id = #{productId}
+          AND c.status = 1
+          AND c.deleted = 0
+        ORDER BY c.created_at DESC
+    </select>
+
+    <!-- 根据用户ID查找评论列表 -->
+    <select id="findByUserId" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM comments
+        WHERE user_id = #{userId}
+          AND deleted = 0
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 统计商品评论数量 -->
+    <select id="countByProductId" resultType="int">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE product_id = #{productId}
+          AND status = 1
+          AND deleted = 0
+    </select>
+
+    <!-- 获取商品平均评分 -->
+    <select id="getAverageRating" resultType="double">
+        SELECT IFNULL(AVG(rating), 0)
+        FROM comments
+        WHERE product_id = #{productId}
+          AND status = 1
+          AND deleted = 0
+    </select>
+
+    <!-- 商家回复评论 -->
+    <update id="replyComment">
+        UPDATE comments
+        SET admin_reply = #{adminReply},
+            reply_time = NOW()
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+
+</mapper>

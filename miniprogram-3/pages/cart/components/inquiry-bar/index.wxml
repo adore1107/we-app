@@ -1,0 +1,11 @@
+<view class="inquiry-bar safe-area-bottom {{fixed ? 'fixed' : ''}}" style="bottom: {{fixed ? bottomHeight : 0}}px;">
+  <view class="inquiry-content">
+    <view class="inquiry-info">
+      <text class="count-text">{{favoritesCount}}个商品待询价</text>
+    </view>
+
+    <view class="inquiry-btn" bindtap="onInquiry">
+      <text class="btn-text">一键询价</text>
+    </view>
+  </view>
+</view>

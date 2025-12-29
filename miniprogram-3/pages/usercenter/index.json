@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "关于我们",
+  "usingComponents": {
+    "t-collapse": "tdesign-miniprogram/collapse/collapse",
+    "t-collapse-panel": "tdesign-miniprogram/collapse-panel/collapse-panel",
+    "t-toast": "tdesign-miniprogram/toast/toast"
+  }
+}

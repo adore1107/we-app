@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songjia.textile.mapper.ProductMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.songjia.textile.entity.Product">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="main_image" property="mainImage" jdbcType="VARCHAR"/>
+        <result column="images" property="images" jdbcType="LONGVARCHAR"/>
+        <result column="description" property="description" jdbcType="LONGVARCHAR"/>
+        <result column="features" property="features" jdbcType="LONGVARCHAR"/>
+        <result column="specifications" property="specifications" jdbcType="LONGVARCHAR"/>
+        <result column="min_order_quantity" property="minOrderQuantity" jdbcType="INTEGER"/>
+        <result column="unit" property="unit" jdbcType="VARCHAR"/>
+        <result column="lead_time" property="leadTime" jdbcType="INTEGER"/>
+        <result column="wholesale_price" property="wholesalePrice" jdbcType="DOUBLE"/>
+        <result column="retail_price" property="retailPrice" jdbcType="DOUBLE"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="is_hot" property="isHot" jdbcType="BOOLEAN"/>
+        <result column="is_new" property="isNew" jdbcType="BOOLEAN"/>
+        <result column="is_recommended" property="isRecommended" jdbcType="BOOLEAN"/>
+        <result column="status" property="status" jdbcType="BOOLEAN"/>
+        <result column="view_count" property="viewCount" jdbcType="INTEGER"/>
+        <result column="favorite_count" property="favoriteCount" jdbcType="INTEGER"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+        <result column="main_category_id" property="mainCategoryId" jdbcType="INTEGER"/>
+        <result column="sub_category_id" property="subCategoryId" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 基础查询列 -->
+    <sql id="Base_Column_List">
+        id, name, main_image, images, description, features, specifications,
+        min_order_quantity, unit, lead_time, wholesale_price, retail_price,
+        sort_order, is_hot, is_new, is_recommended, status, view_count, favorite_count,
+        created_at, updated_at, main_category_id, sub_category_id
+    </sql>
+
+    <!-- 根据分类查找商品（支持一级分类和二级分类） -->
+    <select id="findByCategoryIdAndStatusOrderBySortOrderDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE (main_category_id = #{categoryId} OR sub_category_id = #{categoryId})
+        AND status = #{status}
+        ORDER BY sort_order DESC, id DESC
+    </select>
+
+    <!-- 查找热门商品 -->
+    <select id="findByIsHotAndStatusOrderBySortOrderDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE is_hot = #{isHot}
+        AND status = #{status}
+        ORDER BY sort_order DESC, id DESC
+    </select>
+
+    <!-- 查找新品商品 -->
+    <select id="findByIsNewAndStatusOrderBySortOrderDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE is_new = #{isNew}
+        AND status = #{status}
+        ORDER BY sort_order DESC, id DESC
+    </select>
+
+    <!-- 查找推荐商品 -->
+    <select id="findByIsRecommendedAndStatusOrderBySortOrderDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE is_recommended = #{isRecommended}
+        AND status = #{status}
+        ORDER BY sort_order DESC, id DESC
+    </select>
+
+    <!-- 分页查找所有上架商品 -->
+    <select id="findByStatusOrderBySortOrderDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE status = #{status}
+        ORDER BY sort_order DESC, id DESC
+    </select>
+
+    <!-- 搜索商品（根据名称和描述） -->
+    <select id="findByNameContainingOrDescriptionContaining" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE status = #{status}
+        AND (
+            name LIKE CONCAT('%', #{keyword}, '%')
+            OR description LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY sort_order DESC, id DESC
+    </select>
+
+    <!-- 根据价格范围查找商品 -->
+    <select id="findByPriceRange" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE status = #{status}
+        AND wholesale_price BETWEEN #{minPrice} AND #{maxPrice}
+        ORDER BY sort_order DESC, id DESC
+    </select>
+
+    <!-- 增加浏览次数 -->
+    <update id="incrementViewCount">
+        UPDATE products
+        SET view_count = view_count + 1,
+            updated_at = NOW()
+        WHERE id = #{productId}
+    </update>
+
+    <!-- 更新收藏次数 -->
+    <update id="updateFavoriteCount">
+        UPDATE products
+        SET favorite_count = #{count},
+            updated_at = NOW()
+        WHERE id = #{productId}
+    </update>
+
+    <!-- 查找收藏数量最多的商品 -->
+    <select id="findTop10ByStatusOrderByFavoriteCountDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE status = #{status}
+        ORDER BY favorite_count DESC
+        LIMIT 10
+    </select>
+
+    <!-- 查找浏览次数最多的商品 -->
+    <select id="findTop10ByStatusOrderByViewCountDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE status = #{status}
+        ORDER BY view_count DESC
+        LIMIT 10
+    </select>
+
+    <!-- 商品搜索结果映射 -->
+    <resultMap id="ProductSearchDTOMap" type="com.songjia.textile.dto.ProductSearchDTO">
+        <id column="id" property="spuId"/>
+        <result column="name" property="title"/>
+        <result column="main_image" property="primaryImage"/>
+        <result column="min_sale_price" property="minSalePrice"/>
+        <result column="max_sale_price" property="maxSalePrice"/>
+        <result column="min_order_quantity" property="minOrderQuantity"/>
+        <result column="unit" property="unit"/>
+        <result column="store_name" property="storeName"/>
+        <result column="favorite_count" property="favoriteCount"/>
+        <result column="total_sales" property="totalSales"/>
+        <result column="tags" property="tags"/>
+    </resultMap>
+
+    <!-- 根据商品名称模糊搜索 -->
+    <select id="searchProductsByName" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE status = #{status}
+        AND name LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY sort_order DESC, id DESC
+    </select>
+
+    <!-- 根据ID查找商品 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM products
+        WHERE id = #{id}
+    </select>
+
+</mapper>

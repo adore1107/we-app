@@ -1,0 +1,91 @@
+<view class="favorites-container">
+  <!-- 顶部操作栏 -->
+  <view class="favorites-header">
+    <view class="header-left">
+      <text class="favorites-count">收藏商品（{{favoritesList.length}}）</text>
+    </view>
+    <view class="header-right">
+      <button class="edit-btn" bindtap="toggleEditMode" wx:if="{{!isEditMode}}">
+        <text>编辑</text>
+      </button>
+      <button class="cancel-btn" bindtap="toggleEditMode" wx:else>
+        <text>取消</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 收藏商品列表 -->
+  <view class="favorites-list">
+    <view
+      class="favorites-item-wrapper"
+      wx:for="{{favoritesList}}"
+      wx:key="spuId"
+    >
+      <!-- 主内容区域（可左滑） -->
+      <view
+        class="favorites-item {{isEditMode ? 'edit-mode' : ''}}"
+        style="transform: translateX({{item.translateX || 0}}rpx); transition: transform {{item.isSwiping ? '0s' : '0.3s'}};"
+        data-index="{{index}}"
+        bindtouchstart="{{isEditMode ? '' : 'onTouchStart'}}"
+        bindtouchmove="{{isEditMode ? '' : 'onTouchMove'}}"
+        bindtouchend="{{isEditMode ? '' : 'onTouchEnd'}}"
+        data-goods="{{item}}"
+        bindtap="onGoodsClick"
+      >
+        <!-- 复选框（编辑模式显示） -->
+        <view class="checkbox-wrapper" wx:if="{{isEditMode}}" catchtap="onCheckboxChange" data-index="{{index}}">
+          <view class="checkbox {{item.checked ? 'checked' : ''}}">
+            <text class="checkbox-icon" wx:if="{{item.checked}}">✓</text>
+          </view>
+        </view>
+
+        <!-- 商品图片 -->
+        <view class="goods-image">
+          <image
+            src="{{item.image || 'https://tdesign.gtimg.com/miniprogram/images/placeholder.png'}}"
+            mode="aspectFill"
+            data-url="{{item.image}}"
+            bindtap="onImagePreview"
+            catchtap="onImagePreview"
+          />
+        </view>
+
+        <!-- 商品信息 -->
+        <view class="goods-info">
+          <view class="goods-title">{{item.title || '商品标题'}}</view>
+
+          <!-- 商品规格 -->
+          <view class="goods-specs">
+            <text class="specs-text" wx:if="{{item.specifications}}">规格：{{item.specifications}}</text>
+            <text class="unit-text" wx:if="{{item.unit}}">单位：{{item.unit}}</text>
+          </view>
+
+          <!-- 供应商信息 -->
+          <view class="supplier-info">
+            <text class="supplier-name">{{item.storeName || '浙江宋家纺织'}}</text>
+            <text class="favorite-time">{{item.favoriteTime || '刚刚'}}</text>
+          </view>
+
+          <!-- 价格信息 -->
+          <view class="price-info">
+            <view class="wholesale-price">
+              <text class="price-label">批发价：</text>
+              <text class="price-value">¥{{item.displayPrice}}</text>
+            </view>
+            <view class="min-order">
+              <text class="order-label">起订量：</text>
+              <text class="order-value">{{item.minOrderQuantity}}{{item.unit}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 右侧删除按钮区域（隐藏在后面） -->
+      <view class="swipe-delete-area">
+        <view class="delete-btn" data-goods="{{item}}" data-index="{{index}}" catchtap="onDelete">
+          <text class="delete-text">取消收藏</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

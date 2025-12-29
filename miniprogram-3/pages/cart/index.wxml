@@ -1,0 +1,46 @@
+<!-- 收藏列表 -->
+<block wx:if="{{favoritesData.isNotEmpty}}">
+  <favorites-group
+    id="favorites-group"
+    favorites-list="{{favoritesData.favoritesList}}"
+    bindgoodsclick="onGoodsClick"
+    binddelete="onGoodsDelete"
+    bindbatchdelete="onBatchDelete"
+    bindeditmodechange="onEditModeChange"
+    bindcheckchange="onCheckChange"
+    bindselectallchange="onSelectAllChange"
+  />
+
+  <view class="gap" />
+
+  <!-- 一键询价按钮（非编辑模式显示） -->
+  <inquiry-bar
+    wx:if="{{!isEditMode}}"
+    favorites-count="{{favoritesData.favoritesList.length}}"
+    fixed="{{true}}"
+    bottomHeight="{{0}}"
+    bindhandleInquiry="onInquiry"
+  />
+</block>
+
+<!-- 收藏空态 -->
+<cart-empty wx:if="{{!favoritesData.isNotEmpty}}" bind:handleClick="onGotoHome" />
+
+<!-- 底部批量操作栏（编辑模式显示） -->
+<view class="batch-actions-bar" wx:if="{{isEditMode}}">
+  <view class="batch-left">
+    <view class="select-all" bindtap="onToggleSelectAll">
+      <view class="checkbox {{batchData.isAllSelected ? 'checked' : ''}}">
+        <text class="checkbox-icon" wx:if="{{batchData.isAllSelected}}">✓</text>
+      </view>
+      <text class="select-all-text">全选</text>
+    </view>
+  </view>
+  <view class="batch-right">
+    <button class="batch-delete-btn" bindtap="onConfirmBatchDelete" disabled="{{batchData.selectedCount === 0}}">
+      <text>批量取消收藏{{batchData.selectedCount > 0 ? '(' + batchData.selectedCount + ')' : ''}}</text>
+    </button>
+  </view>
+</view>
+<t-toast id="t-toast" />
+<t-dialog id="t-dialog" />

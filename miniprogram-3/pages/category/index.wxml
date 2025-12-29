@@ -1,0 +1,100 @@
+<view class="category-page">
+  <!-- 一级分类标签区 - 固定在顶部 -->
+  <view class="main-category-tabs-fixed">
+    <scroll-view class="category-tabs" scroll-x="true" scroll-with-animation="{{false}}">
+      <view class="tabs-container">
+        <view
+          class="tab-item {{currentMainIndex === index ? 'active' : ''}}"
+          wx:for="{{mainCategories}}"
+          wx:key="id"
+          data-index="{{index}}"
+          bindtap="onMainCategorySelect">
+          <text class="tab-icon">{{item.categoryIcon}}</text>
+          <text class="tab-name">{{item.name}}</text>
+          <view class="tab-indicator" wx:if="{{currentMainIndex === index}}"></view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 二级分类标签区 - 固定在一级分类下方 -->
+  <view class="sub-category-tabs-fixed" wx:if="{{subCategories.length > 0}}">
+    <scroll-view class="sub-category-tabs" scroll-x="true" scroll-with-animation="{{false}}">
+      <view class="tabs-container">
+        <view
+          class="sub-tab-item {{currentSubIndex === index ? 'active' : ''}}"
+          wx:for="{{subCategories}}"
+          wx:key="id"
+          data-index="{{index}}"
+          bindtap="onSubCategorySelect">
+          <text class="sub-tab-name">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 商品展示区 - 全宽瀑布流 -->
+  <scroll-view
+    id="product-scroll"
+    class="products-scroll"
+    scroll-y="{{true}}"
+    scroll-into-view="{{scrollIntoView}}"
+    scroll-with-animation="{{false}}"
+    bindscroll="onPageScroll"
+    bindscrolltolower="onReachBottom">
+
+    <!-- 顶部锚点，用于回到顶部 -->
+    <view id="top-anchor"></view>
+
+    <!-- 顶部搜索栏 - 可以滚动上去 -->
+    <view class="search-header">
+      <view class="search-bar" bindtap="onSearchTap">
+        <text class="search-icon">🔍</text>
+        <text class="search-placeholder">搜索商品</text>
+      </view>
+    </view>
+
+    <!-- 商品网格 -->
+    <view class="products-grid">
+      <view class="product-card"
+            wx:for="{{currentProducts}}"
+            wx:key="spuId"
+            data-product="{{item}}"
+            bindtap="onProductTap">
+
+        <!-- 商品图片 -->
+        <view class="product-image-wrapper">
+          <image
+            class="product-image"
+            src="{{item.thumb}}"
+            mode="aspectFill"
+            lazy-load="true"></image>
+        </view>
+
+        <!-- 商品信息 -->
+        <view class="product-info">
+          <text class="product-title">{{item.title}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{currentProducts.length === 0 && hasLoaded}}">
+      <text class="empty-icon">📦</text>
+      <text class="empty-text">该分类暂无商品</text>
+    </view>
+
+    <!-- 加载更多状态 -->
+    <view class="load-more" wx:if="{{currentProducts.length > 0}}">
+      <text class="load-more-text" wx:if="{{loadMoreStatus === 0}}">上拉加载更多</text>
+      <text class="load-more-text" wx:elif="{{loadMoreStatus === 1}}">加载中...</text>
+      <text class="load-more-text" wx:elif="{{loadMoreStatus === 2}}">没有更多了</text>
+    </view>
+  </scroll-view>
+
+  <!-- 回到顶部按钮 -->
+  <view class="back-to-top {{showBackToTop ? 'show' : ''}}" bindtap="backToTop">
+    <t-icon name="backtop" size="48rpx" color="#fff" />
+    <text class="back-to-top-text">顶部</text>
+  </view>
+</view>

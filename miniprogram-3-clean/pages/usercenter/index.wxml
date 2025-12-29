@@ -1,0 +1,121 @@
+<view class="about-page">
+  <!-- ① 顶部：一句话品牌定位 -->
+  <view class="brand-header">
+    <view class="brand-title">浙江宋家纺织</view>
+    <view class="brand-subtitle">专注功能家纺面料 20 年</view>
+  </view>
+
+  <!-- ② 三个图标卡片（横向滑块） -->
+  <scroll-view class="stats-scroll" scroll-x enable-flex>
+    <view class="stats-card">
+      <view class="stats-icon">🏭</view>
+      <view class="stats-title">自有工厂</view>
+      <view class="stats-data">2.5 万 m²</view>
+    </view>
+    <view class="stats-card">
+      <view class="stats-icon">🧪</view>
+      <view class="stats-title">专利/认证</view>
+      <view class="stats-data">21 件 · OEKO-TEX A 类</view>
+    </view>
+    <view class="stats-card">
+      <view class="stats-icon">🚚</view>
+      <view class="stats-title">年出货量</view>
+      <view class="stats-data">3,000 万米</view>
+    </view>
+  </scroll-view>
+
+  <!-- ③ 核心系列（折叠面板） -->
+  <view class="core-series">
+    <view class="section-title">核心产品系列</view>
+    <t-collapse value="{{activeNames}}" bind:change="onCollapseChange">
+      <t-collapse-panel name="gel" header="凝胶恒温床垫面料">
+        <view class="product-detail">
+          <view class="product-feature">Q-max≥0.2 凉感值</view>
+          <view class="product-desc">采用凝胶科技，持续控温，提供卓越的睡眠舒适度</view>
+        </view>
+      </t-collapse-panel>
+      <t-collapse-panel name="tencel" header="天丝高支家纺面料">
+        <view class="product-detail">
+          <view class="product-feature">80-100 S 高支高密</view>
+          <view class="product-desc">环保天丝材质，丝滑触感，透气性极佳</view>
+        </view>
+      </t-collapse-panel>
+      <t-collapse-panel name="tech-fabric" header="科技布沙发面料">
+        <view class="product-detail">
+          <view class="product-feature">10 万次耐磨</view>
+          <view class="product-desc">高科技涂层，防水防污，适合高频使用场景</view>
+        </view>
+      </t-collapse-panel>
+      <t-collapse-panel name="ice-silk" header="冰丝凉席面料">
+        <view class="product-detail">
+          <view class="product-feature">恒温 25 ℃</view>
+          <view class="product-desc">冰丝科技，自动调温，夏季凉爽舒适</view>
+        </view>
+      </t-collapse-panel>
+    </t-collapse>
+  </view>
+
+  <!-- ④ 客户背书（logo 墙） -->
+  <view class="client-wall">
+    <view class="section-title">合作伙伴</view>
+    <scroll-view class="logo-scroll" scroll-x enable-flex>
+      <view class="logo-item">
+        <text class="logo-text">南极人</text>
+      </view>
+      <view class="logo-item">
+        <text class="logo-text">水星家纺</text>
+      </view>
+      <view class="logo-item">
+        <text class="logo-text">富安娜</text>
+      </view>
+      <view class="logo-item">
+        <text class="logo-text">Amazon</text>
+      </view>
+      <view class="logo-item">
+        <text class="logo-text">Lazada</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ⑤ 联系方式（一键复制） -->
+  <view class="contact-section">
+    <view class="section-title">联系我们</view>
+
+    <button class="contact-item" bind:tap="makePhoneCall">
+      <view class="contact-icon">📞</view>
+      <view class="contact-info">
+        <view class="contact-label">电话咨询</view>
+        <view class="contact-value">0579-8566 8888</view>
+      </view>
+      <view class="contact-action">点击拨号</view>
+    </button>
+
+    <view class="contact-item" bind:tap="copyEmail">
+      <view class="contact-icon">📧</view>
+      <view class="contact-info">
+        <view class="contact-label">邮件联系</view>
+        <view class="contact-value">sales@sj-tex.com</view>
+      </view>
+      <view class="contact-action">点击复制</view>
+    </view>
+
+    <view class="contact-item" bind:tap="openWebsite">
+      <view class="contact-icon">🌐</view>
+      <view class="contact-info">
+        <view class="contact-label">官方网站</view>
+        <view class="contact-value">www.sj-tex.com</view>
+      </view>
+      <view class="contact-action">点击访问</view>
+    </view>
+  </view>
+
+  <!-- ⑥ 底部情感句 + 小程序关注 -->
+  <view class="emotional-footer">
+    <view class="slogan">让每一寸面料，都懂生活。</view>
+    <view class="follow-tip">
+      <text>关注「宋家纺织」小程序，新品/优惠第一时间推送。</text>
+    </view>
+  </view>
+</view>
+
+<t-toast id="t-toast" />

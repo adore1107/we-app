@@ -1,0 +1,89 @@
+# Spring Boot 配置文件
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+    encoding:
+      charset: UTF-8
+      enabled: true
+
+spring:
+  application:
+    name: songjia-textile-backend
+
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/songjia_textile?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456  # 可以通过环境变量设置密码
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: TextileHikariCP
+      max-lifetime: 900000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+
+  # MyBatis Plus配置
+  mybatis-plus:
+    # mapper文件位置
+    mapper-locations: classpath*:/mapper/**/*.xml
+    # 实体类扫描路径
+    type-aliases-package: com.songjia.textile.entity
+    configuration:
+      # 下划线转驼峰
+      map-underscore-to-camel-case: true
+      # 日志打印SQL
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    global-config:
+      # 数据库配置
+      db-config:
+        # 主键类型：自增
+        id-type: auto
+        # 逻辑删除配置
+        logic-delete-field: deleted
+        logic-delete-value: 1
+        logic-not-delete-value: 0
+
+  # JSON配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    serialization:
+      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+# 日志配置
+logging:
+  level:
+    com.songjia.textile: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.transaction: DEBUG
+    com.baomidou.mybatisplus: DEBUG
+    org.apache.ibatis: DEBUG
+    org.apache.ibatis.jdbc: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 自定义配置
+textile:
+  # 文件上传配置
+  upload:
+    path: /uploads/
+    max-size: 10MB
+  # 微信小程序配置
+  wechat:
+    app-id: ${WECHAT_APP_ID:your_app_id}
+    app-secret: ${WECHAT_APP_SECRET:your_app_secret}
+  # 分页配置
+  page:
+    default-size: 10
+    max-size: 100

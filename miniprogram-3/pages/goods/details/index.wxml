@@ -1,0 +1,282 @@
+<view class="goods-detail-page">
+  <view class="goods-head">
+    <swiper
+      wx:if="{{details.images.length > 1}}"
+      class="goods-swiper"
+      indicator-dots="{{true}}"
+      autoplay="{{autoplay}}"
+      interval="{{interval}}"
+      duration="{{duration}}"
+      indicator-color="rgba(255, 255, 255, 0.5)"
+      indicator-active-color="#2C3E50"
+    >
+      <swiper-item wx:for="{{details.images}}" wx:key="index">
+        <image
+          class="swipe-img"
+          src="{{item}}"
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-current="{{index}}"
+        />
+      </swiper-item>
+    </swiper>
+
+    <!-- 单张图片显示 -->
+    <image
+      wx:elif="{{details.images.length === 1}}"
+      class="swipe-img"
+      src="{{details.images[0]}}"
+      mode="aspectFill"
+      bindtap="previewImage"
+      data-current="0"
+    />
+
+    <!-- 备用图片 -->
+    <image
+      wx:else
+      class="swipe-img"
+      src="{{details.primaryImage || '/assets/placeholder.png'}}"
+      mode="aspectFill"
+    />
+    <view class="goods-info">
+      <!-- B2B商品标题区域 -->
+      <view class="goods-title">
+        <view class="goods-name">{{details.title}}</view>
+      </view>
+
+      <!-- B2B核心信息展示 -->
+      <view class="b2b-info-cards">
+        <view class="b2b-info-card">
+          <view class="b2b-icon">🏭</view>
+          <view class="b2b-info">
+            <text class="b2b-label">最小起订量</text>
+            <text class="b2b-value">{{details.minOrderQuantity}} {{details.unit}}</text>
+          </view>
+        </view>
+
+        <view class="b2b-info-card">
+          <view class="b2b-icon">⏱️</view>
+          <view class="b2b-info">
+            <text class="b2b-label">交货周期</text>
+            <text class="b2b-value">{{details.leadTime}} 天</text>
+          </view>
+        </view>
+
+        <view class="b2b-info-card">
+          <view class="b2b-icon">⭐</view>
+          <view class="b2b-info">
+            <text class="b2b-label">品质等级</text>
+            <text class="b2b-value">A级优品</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 规格参数部分 -->
+      <view class="specifications-section">
+        <view class="specifications-title">
+          <span class="specifications-title--text">规格参数</span>
+          <t-image t-class="img" src="{{recRightImg}}" />
+        </view>
+
+        <view wx:if="{{details.specificationParams && details.specificationParams.length > 0}}" class="specifications-grid">
+          <view class="spec-item" wx:for="{{details.specificationParams}}" wx:key="key">
+            <view class="spec-label">{{item.name}}</view>
+            <view class="spec-value">{{item.value}}</view>
+          </view>
+        </view>
+
+        <view wx:else class="no-specifications">
+          <text>暂无规格参数信息</text>
+        </view>
+      </view>
+
+    </view>
+
+    <!-- 商品评论区域 -->
+    <view class="comments-section">
+      <view class="comments-header">
+        <view class="comments-title">
+          <text class="title-text">商品评价</text>
+          <text class="comments-count">({{commentStats.count || 0}})</text>
+        </view>
+        <view class="comments-rating" wx:if="{{commentStats.avgRating > 0}}">
+          <text class="rating-number">{{commentStats.avgRating}}</text>
+          <text class="rating-stars">{{ratingStars}}</text>
+        </view>
+      </view>
+
+      <!-- 评论列表 -->
+      <view class="comments-list" wx:if="{{comments.length > 0}}">
+        <view class="comment-item" wx:for="{{comments}}" wx:key="id">
+          <view class="comment-header">
+            <image class="user-avatar" src="{{item.userAvatar || '/assets/default-avatar.png'}}" />
+            <view class="user-info">
+              <view class="user-name">{{item.userName || '匿名用户'}}</view>
+              <view class="comment-time">{{item.createdAt}}</view>
+            </view>
+            <view class="comment-rating">
+              <text class="stars">{{item.ratingStars}}</text>
+            </view>
+          </view>
+          <view class="comment-content">{{item.content}}</view>
+
+          <!-- 商家回复 -->
+          <view class="admin-reply" wx:if="{{item.adminReply}}">
+            <view class="reply-label">商家回复：</view>
+            <view class="reply-content">{{item.adminReply}}</view>
+            <view class="reply-time">{{item.replyTime}}</view>
+          </view>
+
+          <!-- 删除按钮（只有自己的评论才显示） -->
+          <view class="comment-actions" wx:if="{{userInfo && item.userId === userInfo.id}}">
+            <button class="delete-btn" bindtap="deleteComment" data-id="{{item.id}}">删除</button>
+          </view>
+        </view>
+      </view>
+
+      <!-- 无评论提示 -->
+      <view class="no-comments" wx:else>
+        <text class="no-comments-icon">💬</text>
+        <text class="no-comments-text">暂无评价，快来发表您的看法吧~</text>
+      </view>
+
+      <!-- 加载更多 / 收起按钮 -->
+      <view class="load-more-section" wx:if="{{comments.length > 0}}">
+        <!-- 加载更多按钮 -->
+        <button class="load-more-btn" wx:if="{{hasMoreComments}}" bindtap="loadMoreComments">
+          <text class="btn-text">加载更多评价</text>
+          <text class="btn-icon">▼</text>
+        </button>
+
+        <!-- 收起按钮（显示超过5条时） -->
+        <button class="collapse-btn" wx:if="{{comments.length > 5}}" bindtap="collapseComments">
+          <text class="btn-text">收起评价</text>
+          <text class="btn-icon">▲</text>
+        </button>
+
+        <!-- 没有更多评论提示 -->
+        <view class="no-more-text-wrapper" wx:if="{{!hasMoreComments && comments.length <= 5}}">
+          <text class="no-more-text">已加载全部评价</text>
+        </view>
+      </view>
+
+      <!-- 写评论按钮 -->
+      <view class="write-comment-section">
+        <button class="write-comment-btn" bindtap="showCommentDialog">
+          <text class="btn-icon">✍️</text>
+          <text class="btn-text">写评价</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- B2B企业联系信息 -->
+    <view class="b2b-contact-section">
+      <view class="contact-title">企业采购联系</view>
+      <view class="contact-info">
+        <view class="contact-item" bindtap="makePhoneCall">
+          <view class="contact-icon">📞</view>
+          <view class="contact-details">
+            <view class="contact-label">采购热线</view>
+            <view class="contact-value">157-3628-8761</view>
+          </view>
+          <view class="contact-action">拨打</view>
+        </view>
+
+        <view class="contact-item">
+          <view class="contact-icon">📧</view>
+          <view class="contact-details">
+            <view class="contact-label">商务邮箱</view>
+            <view class="contact-value">sales@sj-tex.com</view>
+          </view>
+          <view class="contact-action" bindtap="copyEmail">复制</view>
+        </view>
+
+        <view class="contact-item">
+          <view class="contact-icon">🌐</view>
+          <view class="contact-details">
+            <view class="contact-label">官方网站</view>
+            <view class="contact-value">www.sj-tex.com</view>
+          </view>
+          <view class="contact-action" bindtap="openWebsite">访问</view>
+        </view>
+
+        <!-- 退出登录按钮 -->
+        <view class="contact-item logout-item" wx:if="{{userInfo}}" bindtap="logout">
+          <view class="contact-icon">🚪</view>
+          <view class="contact-details">
+            <view class="contact-label">用户管理</view>
+            <view class="contact-value">{{userInfo.nickname || '微信用户'}}</view>
+          </view>
+          <view class="contact-action logout-action">退出登录</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="b2b-bottom-bar">
+    <view class="b2b-action-buttons">
+      <!-- 收藏按钮 - 如果未登录，显示登录按钮 -->
+      <block wx:if="{{!userInfo}}">
+        <button class="b2b-btn favorite" bindtap="onGetUserInfoForFavorite">
+          <text class="btn-icon">⭐</text>
+          <text class="btn-text">登录收藏</text>
+        </button>
+      </block>
+      <block wx:else>
+        <button class="b2b-btn favorite {{isFavorited ? 'favorited' : ''}}" bindtap="toAddFavorite">
+          <text class="btn-icon">{{isFavorited ? '❤️' : '⭐'}}</text>
+          <text class="btn-text">{{isFavorited ? '已收藏' : '收藏商品'}}</text>
+        </button>
+      </block>
+
+      <button class="b2b-btn inquiry" bindtap="toInquiry">
+        <text class="btn-icon">📞</text>
+        <text class="btn-text">立即询价</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 评论弹窗 -->
+  <view class="comment-dialog {{showDialog ? 'show' : ''}}" catchtouchmove="preventMove">
+    <view class="dialog-mask" bindtap="hideCommentDialog"></view>
+    <view class="dialog-content">
+      <view class="dialog-header">
+        <text class="dialog-title">写评价</text>
+        <text class="dialog-close" bindtap="hideCommentDialog">✕</text>
+      </view>
+
+      <!-- 评分 -->
+      <view class="dialog-rating">
+        <text class="rating-label">评分：</text>
+        <view class="rating-stars-input">
+          <text class="star {{index < rating ? 'active' : ''}}"
+                wx:for="{{5}}"
+                wx:key="index"
+                bindtap="setRating"
+                data-rating="{{index + 1}}">★</text>
+        </view>
+      </view>
+
+      <!-- 评论内容 -->
+      <view class="dialog-textarea">
+        <textarea
+          class="comment-input"
+          placeholder="分享您的使用体验..."
+          maxlength="500"
+          value="{{commentContent}}"
+          bindinput="onCommentInput"
+          auto-height
+        />
+        <text class="input-counter">{{commentContent.length}}/500</text>
+      </view>
+
+      <!-- 提交按钮 -->
+      <view class="dialog-actions">
+        <button class="dialog-btn cancel" bindtap="hideCommentDialog">取消</button>
+        <button class="dialog-btn submit" bindtap="submitComment">提交评价</button>
+      </view>
+    </view>
+  </view>
+</view>
+<t-toast id="t-toast" />

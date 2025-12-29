@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songjia.textile.mapper.FavoriteMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.songjia.textile.entity.Favorite">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="product_id" property="productId" jdbcType="INTEGER"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="deleted" property="deleted" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 基础查询列 -->
+    <sql id="Base_Column_List">
+        id, user_id, product_id, created_at, deleted
+    </sql>
+
+    <!-- 根据用户ID查找收藏列表（排除已删除） -->
+    <select id="findByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM favorites
+        WHERE user_id = #{userId}
+        AND deleted = 0
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据用户ID和商品ID查找收藏（排除已删除） -->
+    <select id="findByUserIdAndProductId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM favorites
+        WHERE user_id = #{userId}
+        AND product_id = #{productId}
+        AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 根据用户ID和商品ID查找收藏（包括已删除的记录，用于检查是否需要恢复） -->
+    <select id="findByUserIdAndProductIdIncludeDeleted" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM favorites
+        WHERE user_id = #{userId}
+        AND product_id = #{productId}
+        LIMIT 1
+    </select>
+
+    <!-- 统计用户收藏数量（排除已删除） -->
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM favorites
+        WHERE user_id = #{userId}
+        AND deleted = 0
+    </select>
+
+    <!-- 软删除用户收藏 -->
+    <update id="deleteByUserIdAndProductId">
+        UPDATE favorites
+        SET deleted = 1
+        WHERE user_id = #{userId}
+        AND product_id = #{productId}
+        AND deleted = 0
+    </update>
+
+    <!-- 根据ID物理删除（管理员用） -->
+    <delete id="physicalDeleteById">
+        DELETE FROM favorites
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 恢复软删除的收藏 -->
+    <update id="restoreFavorite">
+        UPDATE favorites
+        SET deleted = 0
+        WHERE user_id = #{userId}
+        AND product_id = #{productId}
+        AND deleted = 1
+    </update>
+
+</mapper>

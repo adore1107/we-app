@@ -1,0 +1,9 @@
+<view class="cart-empty">
+	<view class="cart-img">
+		<view class="heart-icon">♥</view>
+	</view>
+	<view class="tip">{{tip}}</view>
+	<view class="sub-tip">{{subTip}}</view>
+	<view class="btn" bind:tap="handleClick">{{btnText}}</view>
+</view>
+

@@ -1,0 +1,120 @@
+/* 页面基础样式 */
+page {
+  background-color: #f5f5f5;
+  padding-bottom: 100rpx; /* 标准底部间距 */
+}
+
+.gap {
+  height: 100rpx; /* 恢复标准间距 */
+  width: 100%;
+}
+
+/* TDesign组件样式覆盖 */
+.t-button {
+  --td-button-default-color: #000;
+  --td-button-primary-text-color: #0052d9;
+}
+
+/* ========== 批量管理相关样式 ========== */
+
+/* 复选框 */
+.checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background-color: #fff;
+}
+
+.checkbox.checked {
+  background: linear-gradient(135deg, #0052d9 0%, #0040b0 100%);
+  border-color: #0052d9;
+}
+
+.checkbox-icon {
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* 底部批量操作栏 */
+.batch-actions-bar {
+  position: fixed;
+  bottom: 100rpx; /* 在 tabBar 上方显示 */
+  left: 0;
+  right: 0;
+  height: 100rpx;
+  background-color: #fff;
+  border-top: 1rpx solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32rpx;
+  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  /* 安全区域适配 */
+  padding-bottom: calc(constant(safe-area-inset-bottom));
+  padding-bottom: calc(env(safe-area-inset-bottom));
+}
+
+/* 批量操作栏左侧区域 */
+.batch-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+/* 批量操作栏右侧区域 */
+.batch-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* 全选区域 */
+.select-all {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.select-all-text {
+  font-size: 28rpx;
+  color: #333;
+  margin-left: 16rpx;
+  font-weight: 500;
+}
+
+/* 批量删除按钮 */
+.batch-delete-btn {
+  padding: 20rpx 48rpx;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: 50rpx;
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(255, 77, 79, 0.3);
+  transition: all 0.3s ease;
+}
+
+.batch-delete-btn::after {
+  border: none;
+}
+
+.batch-delete-btn:active {
+  background: linear-gradient(135deg, #ff5252 0%, #ff3838 100%);
+  transform: scale(0.98);
+}
+
+.batch-delete-btn[disabled] {
+  background: linear-gradient(135deg, #d9d9d9 0%, #bfbfbf 100%);
+  color: #999;
+  box-shadow: none;
+  opacity: 0.6;
+}
