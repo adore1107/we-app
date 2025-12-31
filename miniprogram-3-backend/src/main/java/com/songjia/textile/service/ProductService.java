@@ -26,15 +26,26 @@ public class ProductService {
     private final ProductMapper productMapper;
 
     /**
-     * 分页获取所有商品
+     * 分页获取所有商品（支持排序）
      */
     @Transactional(readOnly = true)
-    public IPage<Product> getAllProducts(int page, int size) {
+    public IPage<Product> getAllProducts(int page, int size, String sortType) {
         Page<Product> pageable = new Page<>(page + 1, size);
         QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("status", true);
-        queryWrapper.orderByDesc("sort_order", "id");
+
+        // 根据sortType动态排序
+        applySorting(queryWrapper, sortType);
+
         return productMapper.selectPage(pageable, queryWrapper);
+    }
+
+    /**
+     * 分页获取所有商品（兼容旧版本，默认综合排序）
+     */
+    @Transactional(readOnly = true)
+    public IPage<Product> getAllProducts(int page, int size) {
+        return getAllProducts(page, size, "overall");
     }
 
     /**
@@ -54,12 +65,12 @@ public class ProductService {
     }
 
     /**
-     * 根据分类分页获取商品
+     * 根据分类分页获取商品（支持排序）
      */
     @Transactional(readOnly = true)
-    public IPage<Product> getProductsByCategory(Integer categoryId, int page, int size) {
+    public IPage<Product> getProductsByCategory(Integer categoryId, int page, int size, String sortType) {
         log.info("=== ProductService.getProductsByCategory 开始 ===");
-        log.info("Service参数 - categoryId: {}, page: {}, size: {}", categoryId, page, size);
+        log.info("Service参数 - categoryId: {}, page: {}, size: {}, sortType: {}", categoryId, page, size, sortType);
 
         // MyBatis-Plus的Page对象使用从1开始的页码，前端传递从0开始的页码，所以需要+1
         Page<Product> pageable = new Page<>(page + 1, size);
@@ -70,7 +81,7 @@ public class ProductService {
             log.info("categoryId为null，查询所有商品");
             QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("status", true);
-            queryWrapper.orderByDesc("sort_order", "id");
+            applySorting(queryWrapper, sortType);
             IPage<Product> result = productMapper.selectPage(pageable, queryWrapper);
             log.info("QueryWrapper查询结果 - 总记录数: {}, 当前页记录数: {}", result.getTotal(), result.getRecords().size());
             return result;
@@ -81,12 +92,20 @@ public class ProductService {
         // 支持一级分类和二级分类查询
         queryWrapper.and(wrapper -> wrapper.eq("main_category_id", categoryId).or().eq("sub_category_id", categoryId));
         queryWrapper.eq("status", true);
-        queryWrapper.orderByDesc("sort_order", "id");
+        applySorting(queryWrapper, sortType);
 
         IPage<Product> result = productMapper.selectPage(pageable, queryWrapper);
         log.info("QueryWrapper分页查询结果 - 总记录数: {}, 当前页记录数: {}", result.getTotal(), result.getRecords().size());
 
         return result;
+    }
+
+    /**
+     * 根据分类分页获取商品（兼容旧版本，默认综合排序）
+     */
+    @Transactional(readOnly = true)
+    public IPage<Product> getProductsByCategory(Integer categoryId, int page, int size) {
+        return getProductsByCategory(categoryId, page, size, "overall");
     }
 
     /**
@@ -161,21 +180,41 @@ public class ProductService {
     }
 
     /**
-     * 根据商品名称模糊搜索 - 用于前端搜索功能
+     * 根据商品名称模糊搜索 - 用于前端搜索功能（支持排序）
      */
     @Transactional(readOnly = true)
-    public IPage<Product> searchProductsByName(String keyword, int pageNum, int pageSize) {
+    public IPage<Product> searchProductsByName(String keyword, int pageNum, int pageSize, String sortType) {
+        log.info("全局搜索商品: keyword={}, page={}, size={}, sortType={}", keyword, pageNum, pageSize, sortType);
+
         // MyBatis-Plus的Page对象使用从1开始的页码，前端传递从0开始的页码，所以需要+1
         Page<Product> pageable = new Page<>(pageNum + 1, pageSize);
-        return productMapper.searchProductsByName(pageable, keyword, true);
+
+        // 使用QueryWrapper构建查询条件
+        QueryWrapper<Product> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("status", true);
+        queryWrapper.like("name", keyword);
+        applySorting(queryWrapper, sortType);
+
+        IPage<Product> result = productMapper.selectPage(pageable, queryWrapper);
+        log.info("全局搜索结果 - 总记录数: {}, 当前页记录数: {}", result.getTotal(), result.getRecords().size());
+
+        return result;
     }
 
     /**
-     * 在指定分类中搜索商品 - 支持分类内关键词搜索
+     * 根据商品名称模糊搜索（兼容旧版本，默认综合排序）
      */
     @Transactional(readOnly = true)
-    public IPage<Product> searchProductsInCategory(Integer categoryId, String keyword, int pageNum, int pageSize) {
-        log.info("分类内搜索商品: categoryId={}, keyword={}, page={}, size={}", categoryId, keyword, pageNum, pageSize);
+    public IPage<Product> searchProductsByName(String keyword, int pageNum, int pageSize) {
+        return searchProductsByName(keyword, pageNum, pageSize, "overall");
+    }
+
+    /**
+     * 在指定分类中搜索商品 - 支持分类内关键词搜索（支持排序）
+     */
+    @Transactional(readOnly = true)
+    public IPage<Product> searchProductsInCategory(Integer categoryId, String keyword, int pageNum, int pageSize, String sortType) {
+        log.info("分类内搜索商品: categoryId={}, keyword={}, page={}, size={}, sortType={}", categoryId, keyword, pageNum, pageSize, sortType);
 
         // MyBatis-Plus的Page对象使用从1开始的页码，前端传递从0开始的页码，所以需要+1
         Page<Product> pageable = new Page<>(pageNum + 1, pageSize);
@@ -186,12 +225,20 @@ public class ProductService {
         queryWrapper.and(wrapper -> wrapper.eq("main_category_id", categoryId).or().eq("sub_category_id", categoryId));
         queryWrapper.eq("status", true);  // 只查询上架商品
         queryWrapper.like("name", keyword);  // 模糊搜索商品名称
-        queryWrapper.orderByDesc("sort_order", "id");  // 排序
+        applySorting(queryWrapper, sortType);  // 应用动态排序
 
         IPage<Product> result = productMapper.selectPage(pageable, queryWrapper);
         log.info("分类内搜索结果 - 总记录数: {}, 当前页记录数: {}", result.getTotal(), result.getRecords().size());
 
         return result;
+    }
+
+    /**
+     * 在指定分类中搜索商品（兼容旧版本，默认综合排序）
+     */
+    @Transactional(readOnly = true)
+    public IPage<Product> searchProductsInCategory(Integer categoryId, String keyword, int pageNum, int pageSize) {
+        return searchProductsInCategory(categoryId, keyword, pageNum, pageSize, "overall");
     }
 
     /**
@@ -246,6 +293,36 @@ public class ProductService {
         }
 
         return productMapper.selectCount(queryWrapper);
+    }
+
+    /**
+     * 应用动态排序逻辑
+     * @param queryWrapper 查询条件构造器
+     * @param sortType 排序类型：overall=综合, latest=最新, hot=热门
+     */
+    private void applySorting(QueryWrapper<Product> queryWrapper, String sortType) {
+        if (sortType == null || sortType.trim().isEmpty()) {
+            sortType = "overall";
+        }
+
+        switch (sortType.toLowerCase()) {
+            case "latest":
+                // 最新：按创建时间降序
+                queryWrapper.orderByDesc("created_at", "id");
+                log.debug("应用排序规则: 最新 (created_at DESC)");
+                break;
+            case "hot":
+                // 热门：按浏览次数降序，再按收藏次数降序
+                queryWrapper.orderByDesc("view_count", "favorite_count", "id");
+                log.debug("应用排序规则: 热门 (view_count DESC, favorite_count DESC)");
+                break;
+            case "overall":
+            default:
+                // 综合：按推荐排序字段降序（默认）
+                queryWrapper.orderByDesc("sort_order", "id");
+                log.debug("应用排序规则: 综合 (sort_order DESC)");
+                break;
+        }
     }
 
     /**

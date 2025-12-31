@@ -6,30 +6,12 @@ Component({
   },
 
   properties: {
-    overall: {
-      type: Number,
-      value: 1,
-      observer(overall) {
-        this.setData({
-          overall,
-        });
-      },
-    },
-    layout: {
-      type: Number,
-      value: 1,
-      observer(layout) {
-        this.setData({
-          layout,
-        });
-      },
-    },
-    sorts: {
+    sortType: {
       type: String,
-      value: '',
-      observer(sorts) {
+      value: 'overall',
+      observer(sortType) {
         this.setData({
-          sorts,
+          sortType,
         });
       },
     },
@@ -40,44 +22,28 @@ Component({
   },
 
   data: {
-    layout: 1,
-    overall: 1,
-    sorts: '',
+    sortType: 'overall', // overall=综合, latest=最新, hot=热门
   },
 
   methods: {
-    onChangeShowAction() {
-      const { layout } = this.data;
-      const nextLayout = layout === 1 ? 0 : 1;
-      this.triggerEvent('change', { ...this.properties, layout: nextLayout });
-    },
-
-    handlePriseSort() {
-      const { sorts } = this.data;
-      this.triggerEvent('change', {
-        ...this.properties,
-        overall: 0,
-        sorts: sorts === 'desc' ? 'asc' : 'desc',
-      });
-    },
-
-    open() {
-      this.triggerEvent('showFilterPopup', {
-        show: true,
-      });
-    },
-
+    // 综合排序
     onOverallAction() {
-      const { overall } = this.data;
-      const nextOverall = overall === 1 ? 0 : 1;
-      const nextData = {
-        sorts: '',
-        prices: [],
-      };
       this.triggerEvent('change', {
-        ...this.properties,
-        ...nextData,
-        overall: nextOverall,
+        sortType: 'overall',
+      });
+    },
+
+    // 最新排序
+    onLatestAction() {
+      this.triggerEvent('change', {
+        sortType: 'latest',
+      });
+    },
+
+    // 热门排序
+    onHotAction() {
+      this.triggerEvent('change', {
+        sortType: 'hot',
       });
     },
   },

@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.39, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: songjia_textile
+-- Host: localhost    Database: songjia_textile
 -- ------------------------------------------------------
 -- Server version	8.0.39
 
@@ -16,6 +16,14 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Current Database: `songjia_textile`
+--
+
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `songjia_textile` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+
+USE `songjia_textile`;
+
+--
 -- Table structure for table `banners`
 --
 
@@ -24,6 +32,7 @@ DROP TABLE IF EXISTS `banners`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `banners` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '轮播图ID',
+  `type` enum('home_banner','company_gallery','product_banner') DEFAULT 'home_banner' COMMENT '图片类型：home_banner-首页轮播，company_gallery-公司风采，product_banner-商品轮播',
   `title` varchar(100) DEFAULT NULL COMMENT '标题',
   `image_url` varchar(500) NOT NULL COMMENT '图片URL',
   `link_url` varchar(500) DEFAULT NULL COMMENT '跳转链接',
@@ -35,8 +44,9 @@ CREATE TABLE `banners` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_sort` (`sort_order`),
-  KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='轮播图表';
+  KEY `idx_status` (`status`),
+  KEY `idx_type` (`type`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='轮播图表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -48,14 +58,45 @@ DROP TABLE IF EXISTS `categories`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `categories` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '分类ID',
+  `parent_id` int DEFAULT NULL COMMENT '鐖跺垎绫籌D锛孨ULL琛ㄧず涓?骇鍒嗙被',
+  `level` tinyint NOT NULL DEFAULT '1' COMMENT '鍒嗙被灞傜骇锛?=涓?骇鍒嗙被锛?=浜岀骇鍒嗙被',
   `name` varchar(50) NOT NULL COMMENT '分类名称',
   `icon` varchar(500) DEFAULT NULL COMMENT '分类图标',
   `sort_order` int DEFAULT '0' COMMENT '排序',
   `status` bit(1) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_sort` (`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品分类表';
+  KEY `idx_sort` (`sort_order`),
+  KEY `idx_parent_id` (`parent_id`),
+  KEY `idx_level` (`level`)
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品分类表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `comments`
+--
+
+DROP TABLE IF EXISTS `comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `comments` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '评论ID',
+  `user_id` int NOT NULL COMMENT '用户ID',
+  `product_id` int NOT NULL COMMENT '商品ID',
+  `content` text NOT NULL COMMENT '评论内容',
+  `rating` tinyint DEFAULT '5' COMMENT '评分(1-5星)',
+  `admin_reply` text COMMENT '商家回复',
+  `reply_time` timestamp NULL DEFAULT NULL COMMENT '回复时间',
+  `status` bit(1) DEFAULT b'1' COMMENT '状态：0-隐藏，1-显示',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `deleted` tinyint(1) DEFAULT '0' COMMENT '软删除：0-正常，1-已删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_created_at` (`created_at` DESC),
+  CONSTRAINT `fk_comment_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品评论表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -79,7 +120,7 @@ CREATE TABLE `favorites` (
   KEY `idx_created_at` (`created_at` DESC),
   CONSTRAINT `favorites_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `favorites_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户收藏表';
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户收藏表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -118,7 +159,8 @@ DROP TABLE IF EXISTS `products`;
 CREATE TABLE `products` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '商品ID',
   `name` varchar(200) NOT NULL COMMENT '商品名称',
-  `category_id` int NOT NULL COMMENT '分类ID',
+  `sub_category_id` int DEFAULT NULL COMMENT '二级分类ID（可选）',
+  `main_category_id` int NOT NULL COMMENT '一级分类ID',
   `main_image` varchar(500) NOT NULL COMMENT '主图',
   `description` text COMMENT '商品描述',
   `features` text COMMENT '产品特点(JSON数组)',
@@ -139,11 +181,14 @@ CREATE TABLE `products` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `images` json DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_category_id` (`category_id`),
+  KEY `idx_category_id` (`sub_category_id`),
   KEY `idx_status` (`status`),
   KEY `idx_sort` (`sort_order` DESC),
   KEY `idx_hot` (`is_hot`),
-  KEY `idx_recommended` (`is_recommended`)
+  KEY `idx_recommended` (`is_recommended`),
+  KEY `idx_main_category_id` (`main_category_id`),
+  KEY `idx_sub_category_id` (`sub_category_id`),
+  KEY `idx_main_sub_category` (`main_category_id`,`sub_category_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=154 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -172,69 +217,8 @@ CREATE TABLE `users` (
   KEY `idx_openid` (`openid`),
   KEY `idx_phone` (`phone`),
   KEY `idx_city` (`city`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户信息表';
-
-##评论表
-REATE TABLE `comments` (
-    `id` INT NOT NULL AUTO_INCREMENT COMMENT '评论ID',
-    `user_id` INT NOT NULL COMMENT '用户ID',
-    `product_id` INT NOT NULL COMMENT '商品ID',
-    `content` TEXT NOT NULL COMMENT '评论内容',
-    `rating` TINYINT DEFAULT 5 COMMENT '评分(1-5星)',
-    `admin_reply` TEXT DEFAULT NULL COMMENT '商家回复',
-    `reply_time` TIMESTAMP NULL DEFAULT NULL COMMENT '回复时间',
-    `status` BIT(1) DEFAULT 1 COMMENT '状态：0-隐藏，1-显示',
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `deleted` TINYINT(1) DEFAULT 0 COMMENT '软删除：0-正常，1-已删除',
-    PRIMARY KEY (`id`),
-    KEY `idx_product_id` (`product_id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_created_at` (`created_at` DESC),
-    CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_comment_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品评论表';
-
-
-  -- ========================================
--- 为 banners 表添加 type 字段
--- 用途：区分首页轮播图和公司风采图片
--- ========================================
-
--- 1. 添加 type 字段
-ALTER TABLE `banners`
-ADD COLUMN `type` enum('home_banner','company_gallery','product_banner')
-DEFAULT 'home_banner'
-COMMENT '图片类型：home_banner-首页轮播，company_gallery-公司风采，product_banner-商品轮播'
-AFTER `id`;
-
--- 2. 添加索引优化查询
-ALTER TABLE `banners`
-ADD INDEX `idx_type` (`type`);
-
--- 3. 更新已有数据（将现有数据标记为首页轮播图）
-UPDATE `banners` SET `type` = 'home_banner' WHERE `type` IS NULL;
-
--- 4. 插入公司风采示例数据
-INSERT INTO `banners` (`type`, `title`, `image_url`, `link_url`, `link_type`, `sort_order`, `status`, `created_at`) VALUES
-('company_gallery', '现代化生产车间 - 自动化织造设备', 'https://your-cdn.com/company/workshop.jpg', NULL, 'none', 1, 1, NOW()),
-('company_gallery', '质量检测中心 - 严格品控流程', 'https://your-cdn.com/company/quality-control.jpg', NULL, 'none', 2, 1, NOW()),
-('company_gallery', '产品展示厅 - 千余种面料样品', 'https://your-cdn.com/company/showroom.jpg', NULL, 'none', 3, 1, NOW()),
-('company_gallery', '企业办公大楼 - 现代化办公环境', 'https://your-cdn.com/company/office-building.jpg', NULL, 'none', 4, 1, NOW()),
-('company_gallery', '仓储物流中心 - 高效配送体系', 'https://your-cdn.com/company/warehouse.jpg', NULL, 'none', 5, 1, NOW());
-
--- ========================================
--- 使用说明：
--- 1. 首页轮播图: type = 'home_banner'
--- 2. 公司风采图: type = 'company_gallery'
--- 3. 商品轮播图: type = 'product_banner' (预留)
--- ========================================
-
-
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping routines for database 'songjia_textile'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -245,4 +229,4 @@ INSERT INTO `banners` (`type`, `title`, `image_url`, `link_url`, `link_type`, `s
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-20 10:38:39
+-- Dump completed on 2025-12-30 17:17:07

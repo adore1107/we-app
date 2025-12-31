@@ -10,16 +10,22 @@ function mockFetchGood(ID = 0) {
 }
 
 /** 获取商品详情 */
-export function fetchGood(ID = 0) {
+export function fetchGood(ID = 0, userId = null) {
   if (config.useMock) {
     return mockFetchGood(ID);
   }
 
   return new Promise((resolve, reject) => {
-    console.log('🚀 请求商品详情，ID:', ID);
+    console.log('🚀 请求商品详情，ID:', ID, 'userId:', userId);
+
+    // 构建请求URL，如果有userId则添加到查询参数
+    let requestUrl = `${apiBaseUrl}/product/detail/${ID}`;
+    if (userId) {
+      requestUrl += `?userId=${userId}`;
+    }
 
     wx.request({
-      url: `${apiBaseUrl}/product/detail/${ID}`,
+      url: requestUrl,
       method: 'GET',
       header: {
         'content-type': 'application/json',

@@ -13,7 +13,10 @@
       "Bash(java:*)",
       "Read(//mnt/c/Users/Mayn/WeChatProjects/miniprogram-3-backend/src/main/resources/**)",
       "Read(//mnt/c/Users/Mayn/WeChatProjects/miniprogram-3-backend/src/main/java/com/songjia/textile/**)",
-      "Read(//mnt/c/Users/Mayn/WeChatProjects/miniprogram-3-backend/**)"
+      "Read(//mnt/c/Users/Mayn/WeChatProjects/miniprogram-3-backend/**)",
+      "Bash(sed:*)",
+      "Bash(grep:*)",
+      "Read(//mnt/c/Users/Mayn/**)"
     ],
     "deny": [],
     "ask": []

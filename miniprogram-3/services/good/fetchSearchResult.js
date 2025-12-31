@@ -38,13 +38,16 @@ export function getSearchResult(params) {
   const requestParams = {
     keyword: params.keyword,
     page: params.page || params.pageNum || 0,
-    size: params.pageSize || params.size || 20
+    size: params.pageSize || params.size || 20,
+    sortType: params.sortType || 'overall'  // 添加排序类型：overall=综合, latest=最新, hot=热门
   };
 
   // 如果有分类ID，添加到参数中（后端会同时按分类和关键词筛选）
   if (params.categoryId) {
     requestParams.categoryId = params.categoryId;
-    console.log('分类搜索 - 分类ID:', params.categoryId, '关键词:', params.keyword);
+    console.log('分类搜索 - 分类ID:', params.categoryId, '关键词:', params.keyword, '排序:', requestParams.sortType);
+  } else {
+    console.log('全局搜索 - 关键词:', params.keyword, '排序:', requestParams.sortType);
   }
 
   const apiUrl = '/product/list';

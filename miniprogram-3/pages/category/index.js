@@ -325,13 +325,13 @@ Page({
   },
 
 
-  // 搜索点击事件 - 在当前分类中搜索
+  // 搜索点击事件 - 在当前一级分类中搜索
   onSearchTap() {
-    // 优先使用二级分类，否则使用一级分类
-    const currentCategory = this.data.currentSubCategory || this.data.currentMainCategory;
+    // 始终使用一级分类进行搜索（范围更广）
+    const currentCategory = this.data.currentMainCategory;
 
     if (currentCategory && currentCategory.id) {
-      console.log('在分类中搜索:', currentCategory.name, 'ID:', currentCategory.id);
+      console.log('在一级分类中搜索:', currentCategory.name, 'ID:', currentCategory.id);
       wx.navigateTo({
         url: `/pages/goods/search/index?categoryId=${currentCategory.id}&categoryName=${encodeURIComponent(currentCategory.name)}`,
       });

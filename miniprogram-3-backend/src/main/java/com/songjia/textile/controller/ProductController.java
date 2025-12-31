@@ -6,6 +6,7 @@ import com.songjia.textile.common.Result;
 import com.songjia.textile.dto.ProductDetailDTO;
 import com.songjia.textile.entity.Product;
 import com.songjia.textile.service.ProductService;
+import com.songjia.textile.service.ProductViewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -26,55 +27,60 @@ import java.util.Optional;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductViewService productViewService;
 
     /**
      * 获取商品列表（分页）
-     * 支持同时按分类和关键词筛选
+     * 支持同时按分类和关键词筛选，支持排序
      */
     @GetMapping("/list")
     public Result<IPage<Product>> getProductList(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer categoryId) {
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false, defaultValue = "overall") String sortType) {
         try {
             IPage<Product> products;
 
             // 同时有分类和关键词：在指定分类中搜索
             if (categoryId != null && keyword != null && !keyword.trim().isEmpty()) {
-                log.info("分类内搜索商品: categoryId={}, keyword={}, page={}, size={}", categoryId, keyword, page, size);
-                products = productService.searchProductsInCategory(categoryId, keyword.trim(), page, size);
+                log.info("分类内搜索商品: categoryId={}, keyword={}, sortType={}, page={}, size={}", categoryId, keyword, sortType, page, size);
+                products = productService.searchProductsInCategory(categoryId, keyword.trim(), page, size, sortType);
             }
             // 只有关键词：全局搜索
             else if (keyword != null && !keyword.trim().isEmpty()) {
-                log.info("全局搜索商品: keyword={}, page={}, size={}", keyword, page, size);
-                products = productService.searchProductsByName(keyword.trim(), page, size);
+                log.info("全局搜索商品: keyword={}, sortType={}, page={}, size={}", keyword, sortType, page, size);
+                products = productService.searchProductsByName(keyword.trim(), page, size, sortType);
             }
             // 只有分类：获取分类下所有商品
             else if (categoryId != null) {
-                log.info("获取分类商品: categoryId={}, page={}, size={}", categoryId, page, size);
-                products = productService.getProductsByCategory(categoryId, page, size);
+                log.info("获取分类商品: categoryId={}, sortType={}, page={}, size={}", categoryId, sortType, page, size);
+                products = productService.getProductsByCategory(categoryId, page, size, sortType);
             }
             // 都没有：获取所有商品
             else {
-                log.info("获取所有商品: page={}, size={}", page, size);
-                products = productService.getAllProducts(page, size);
+                log.info("获取所有商品: sortType={}, page={}, size={}", sortType, page, size);
+                products = productService.getAllProducts(page, size, sortType);
             }
 
             return Result.success("获取成功", products);
         } catch (Exception e) {
-            log.error("获取商品列表失败: keyword={}, categoryId={}", keyword, categoryId, e);
+            log.error("获取商品列表失败: keyword={}, categoryId={}, sortType={}", keyword, categoryId, sortType, e);
             return Result.error("获取商品列表失败");
         }
     }
 
     /**
      * 获取商品详情
+     * 支持智能去重的浏览统计（同一用户同一天只计1次）
      */
     @GetMapping("/detail/{id}")
-    public Result<ProductDetailDTO> getProductDetail(@PathVariable @NotNull Integer id) {
+    public Result<ProductDetailDTO> getProductDetail(
+            @PathVariable @NotNull Integer id,
+            @RequestParam(required = false) Integer userId) {
         try {
-            log.info("获取商品详情请求: id={}", id);
+            log.info("获取商品详情请求: id={}, userId={}", id, userId);
 
             Optional<Product> productOpt = productService.getProductById(id);
 
@@ -90,9 +96,15 @@ public class ProductController {
                 return Result.error("商品已下架");
             }
 
-            // 增加浏览次数
-            productService.incrementViewCount(id);
-            log.info("增加浏览次数: id={}", id);
+            // 记录浏览
+            if (userId != null) {
+                // 记录用户浏览（每次都新增记录）
+                productViewService.recordProductView(userId, id);
+            } else {
+                // 兼容旧版本：如果没有userId，只更新总浏览量
+                productService.incrementViewCount(id);
+                log.warn("未提供userId，无法记录用户浏览行为");
+            }
 
             // 转换为DTO格式
             log.info("开始转换商品详情DTO - 商品ID: {}, 规格: {}", product.getId(), product.getSpecifications());
@@ -303,6 +315,28 @@ public class ProductController {
         } catch (Exception e) {
             log.error("根据价格范围获取商品失败: minPrice={}, maxPrice={}", minPrice, maxPrice, e);
             return Result.error("获取商品失败");
+        }
+    }
+
+    /**
+     * 更新商品浏览时长（用户离开页面时调用）
+     */
+    @PostMapping("/view/duration")
+    public Result<String> updateViewDuration(
+            @RequestParam @NotNull Integer userId,
+            @RequestParam @NotNull Integer productId,
+            @RequestParam @NotNull Integer durationSeconds) {
+        try {
+            log.info("更新浏览时长请求: userId={}, productId={}, duration={}秒",
+                    userId, productId, durationSeconds);
+
+            productViewService.updateLatestViewDuration(userId, productId, durationSeconds);
+
+            return Result.success("更新成功", "OK");
+        } catch (Exception e) {
+            log.error("更新浏览时长失败: userId={}, productId={}, duration={}",
+                    userId, productId, durationSeconds, e);
+            return Result.error("更新失败");
         }
     }
 }

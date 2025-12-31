@@ -1,5 +1,6 @@
 import Toast from 'tdesign-miniprogram/toast/index';
 import { fetchGood } from '../../../services/good/fetchGood';
+import { updateViewDuration } from '../../../services/good/updateViewDuration';
 
 import { cdnBase } from '../../../config/index';
 
@@ -26,6 +27,8 @@ Page({
     favoriteButtonText: '收藏商品',
     // 用户登录状态
     userInfo: null,
+    // 浏览时长追踪
+    pageEnterTime: null,  // 页面进入时间
 
     // 评论相关数据
     comments: [],
@@ -330,7 +333,11 @@ Page({
       mask: true
     });
 
-    fetchGood(spuId).then((details) => {
+    // 获取当前用户ID（如果已登录）
+    const userId = (this.data.userInfo && this.data.userInfo.id) || null;
+    console.log('当前用户ID:', userId);
+
+    fetchGood(spuId, userId).then((details) => {
       console.log('获取商品详情成功:', details);
 
       // 预处理数据，确保字段格式正确
@@ -542,23 +549,85 @@ Page({
     const { spuId } = query;
     this.setData({
       spuId: spuId,
+      pageEnterTime: Date.now()  // 记录页面进入时间（毫秒时间戳）
     });
 
-    // 先获取商品详情，然后检查用户登录状态
-    this.getDetail(spuId);
+    console.log('📍 页面加载 - 商品ID:', spuId, '进入时间:', new Date(this.data.pageEnterTime));
 
-    // 异步检查用户登录状态
+    // 先检查用户登录状态，登录完成后再获取商品详情（以便记录浏览统计）
     this.checkUserLoginStatus().then((userInfo) => {
       console.log('登录状态检查完成，用户信息:', userInfo);
-      // 登录状态检查完成后，检查收藏状态
+
+      // 登录检查完成后获取商品详情（会传递userId）
+      this.getDetail(spuId);
+
+      // 检查收藏状态
       return this.checkFavoriteStatus(spuId);
     }).catch((error) => {
       console.error('登录状态检查失败:', error);
+      // 即使登录失败，也获取商品详情（但不会记录userId）
+      this.getDetail(spuId);
     });
 
     // 加载评论数据
     this.loadCommentStats(spuId);
     this.loadComments(spuId);
+  },
+
+  /**
+   * 页面卸载时更新浏览时长
+   */
+  onUnload() {
+    this.recordViewDuration();
+  },
+
+  /**
+   * 页面隐藏时更新浏览时长
+   */
+  onHide() {
+    this.recordViewDuration();
+  },
+
+  /**
+   * 记录浏览时长
+   */
+  recordViewDuration() {
+    const { pageEnterTime, spuId, userInfo } = this.data;
+
+    // 检查必要参数
+    if (!pageEnterTime || !spuId || !userInfo || !userInfo.id) {
+      console.log('⚠️ 跳过浏览时长记录 - 缺少必要参数');
+      return;
+    }
+
+    // 计算浏览时长（秒）
+    const now = Date.now();
+    const durationMs = now - pageEnterTime;
+    const durationSeconds = Math.floor(durationMs / 1000);
+
+    console.log('⏱️ 记录浏览时长:', {
+      商品ID: spuId,
+      用户ID: userInfo.id,
+      浏览时长: durationSeconds + '秒',
+      进入时间: new Date(pageEnterTime).toLocaleTimeString(),
+      离开时间: new Date(now).toLocaleTimeString()
+    });
+
+    // 只记录超过3秒的浏览（过滤掉误点击）
+    if (durationSeconds >= 3) {
+      updateViewDuration(userInfo.id, parseInt(spuId), durationSeconds)
+        .then(() => {
+          console.log('✅ 浏览时长已上报');
+        })
+        .catch((error) => {
+          console.error('❌ 浏览时长上报失败:', error);
+        });
+    } else {
+      console.log('⚠️ 浏览时长太短，未上报 (少于3秒)');
+    }
+
+    // 重置进入时间，避免重复上报
+    this.setData({ pageEnterTime: null });
   },
 
   // 检查用户登录状态

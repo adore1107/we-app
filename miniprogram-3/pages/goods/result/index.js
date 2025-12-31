@@ -2,22 +2,10 @@
 import { getSearchResult } from '../../../services/good/fetchSearchResult';
 import Toast from 'tdesign-miniprogram/toast/index';
 
-const initFilters = {
-  overall: 1,
-  sorts: '',
-};
-
 Page({
   data: {
     goodsList: [],
-    sorts: '',
-    overall: 1,
-    show: false,
-    minVal: '',
-    maxVal: '',
-    minSalePriceFocus: false,
-    maxSalePriceFocus: false,
-    filter: initFilters,
+    sortType: 'overall', // overall=综合, latest=最新, hot=热门
     hasLoaded: false,
     keywords: '',
     loadMoreStatus: 0,
@@ -98,23 +86,25 @@ Page({
     let pageIndex = fresh ? 0 : this.goodListPagination.index;
 
     try {
-      // 获取搜索关键词和分类ID
+      // 获取搜索关键词、分类ID和排序类型
       const keywords = this.data.keywords;
       const categoryId = this.data.categoryId;
+      const sortType = this.data.sortType;
 
-      // 调用搜索API，带关键词、分类ID和分页
+      // 调用搜索API，带关键词、分类ID、排序和分页
       const params = {
         keyword: keywords,
         page: pageIndex,
-        size: pageSize
+        size: pageSize,
+        sortType: sortType, // overall=综合, latest=最新, hot=热门
       };
 
       // 如果有分类ID，添加到参数中
       if (categoryId) {
         params.categoryId = categoryId;
-        console.log(`分类搜索 - 分类ID: ${categoryId}, 关键词: ${keywords}`);
+        console.log(`分类搜索 - 分类ID: ${categoryId}, 关键词: ${keywords}, 排序: ${sortType}`);
       } else {
-        console.log(`全局搜索 - 关键词: ${keywords}`);
+        console.log(`全局搜索 - 关键词: ${keywords}, 排序: ${sortType}`);
       }
 
       const nextList = await getSearchResult(params);
@@ -186,87 +176,24 @@ Page({
   },
 
   handleFilterChange(e) {
-    const { overall, sorts } = e.detail;
-    const { total } = this;
-    const _filter = {
-      sorts,
-      overall,
-    };
+    const { sortType } = e.detail;
+    console.log('排序类型切换:', sortType);
+
     this.setData({
-      filter: _filter,
-      sorts,
-      overall,
+      sortType: sortType,
     });
 
-    this.pageNum = 1;
+    // 重置分页并重新加载
+    this.goodListPagination = { index: 0, num: 20 };
     this.setData(
       {
         goodsList: [],
-        loadMoreStatus: 0,
+        goodsListLoadStatus: 0,
       },
       () => {
-        total && this.init(true);
+        this.loadGoodsList(true);
       },
     );
   },
 
-  showFilterPopup() {
-    this.setData({
-      show: true,
-    });
-  },
-
-  showFilterPopupClose() {
-    this.setData({
-      show: false,
-    });
-  },
-
-  onMinValAction(e) {
-    const { value } = e.detail;
-    this.setData({ minVal: value });
-  },
-
-  onMaxValAction(e) {
-    const { value } = e.detail;
-    this.setData({ maxVal: value });
-  },
-
-  reset() {
-    this.setData({ minVal: '', maxVal: '' });
-  },
-
-  confirm() {
-    const { minVal, maxVal } = this.data;
-    let message = '';
-    if (minVal && !maxVal) {
-      message = `价格最小是${minVal}`;
-    } else if (!minVal && maxVal) {
-      message = `价格范围是0-${minVal}`;
-    } else if (minVal && maxVal && minVal <= maxVal) {
-      message = `价格范围${minVal}-${this.data.maxVal}`;
-    } else {
-      message = '请输入正确范围';
-    }
-    if (message) {
-      Toast({
-        context: this,
-        selector: '#t-toast',
-        message,
-      });
-    }
-    this.pageNum = 1;
-    this.setData(
-      {
-        show: false,
-        minVal: '',
-        goodsList: [],
-        loadMoreStatus: 0,
-        maxVal: '',
-      },
-      () => {
-        this.init();
-      },
-    );
-  },
 });
