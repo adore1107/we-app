@@ -16,7 +16,9 @@
       "Read(//mnt/c/Users/Mayn/WeChatProjects/miniprogram-3-backend/**)",
       "Bash(sed:*)",
       "Bash(grep:*)",
-      "Read(//mnt/c/Users/Mayn/**)"
+      "Read(//mnt/c/Users/Mayn/**)",
+      "Bash(npm create:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

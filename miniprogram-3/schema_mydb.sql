@@ -24,6 +24,58 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/ `songjia_textile` /*!40100 DEFAULT CHAR
 USE `songjia_textile`;
 
 --
+-- Table structure for table `admin_logs`
+--
+
+DROP TABLE IF EXISTS `admin_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admin_logs` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '日志ID',
+  `admin_id` int NOT NULL COMMENT '管理员ID',
+  `admin_name` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '管理员用户名（冗余字段）',
+  `module` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '模块：product-商品，category-分类，banner-轮播图等',
+  `action` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '操作类型：create-新增，update-修改，delete-删除，login-登录等',
+  `content` text COLLATE utf8mb4_unicode_ci COMMENT '操作内容（JSON格式）',
+  `ip` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'IP地址',
+  `user_agent` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '浏览器UA',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_admin_id` (`admin_id`),
+  KEY `idx_module` (`module`),
+  KEY `idx_action` (`action`),
+  KEY `idx_created_at` (`created_at` DESC),
+  CONSTRAINT `fk_log_admin` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员操作日志表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `admins`
+--
+
+DROP TABLE IF EXISTS `admins`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admins` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '管理员ID',
+  `username` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户名（登录账号）',
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码（BCrypt加密）',
+  `real_name` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '真实姓名',
+  `role` enum('super_admin','product_admin','customer_service','analyst') COLLATE utf8mb4_unicode_ci DEFAULT 'product_admin' COMMENT '角色：super_admin-超级管理员，product_admin-商品管理员，customer_service-客服，analyst-数据分析员',
+  `status` bit(1) DEFAULT b'1' COMMENT '状态：0-禁用，1-启用',
+  `last_login_at` timestamp NULL DEFAULT NULL COMMENT '最后登录时间',
+  `last_login_ip` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '最后登录IP',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `uk_username` (`username`),
+  KEY `idx_status` (`status`),
+  KEY `idx_role` (`role`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `banners`
 --
 
@@ -96,7 +148,7 @@ CREATE TABLE `comments` (
   KEY `idx_created_at` (`created_at` DESC),
   CONSTRAINT `fk_comment_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品评论表';
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品评论表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -120,7 +172,7 @@ CREATE TABLE `favorites` (
   KEY `idx_created_at` (`created_at` DESC),
   CONSTRAINT `favorites_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `favorites_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户收藏表';
+) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户收藏表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -147,6 +199,32 @@ CREATE TABLE `inquiries` (
   CONSTRAINT `inquiries_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `inquiries_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='询价记录表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_views`
+--
+
+DROP TABLE IF EXISTS `product_views`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_views` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '浏览记录ID',
+  `user_id` int NOT NULL COMMENT '用户ID',
+  `product_id` int NOT NULL COMMENT '商品ID',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+  `view_start_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '进入页面时间',
+  `view_end_time` timestamp NULL DEFAULT NULL COMMENT '离开页面时间',
+  `duration_seconds` int DEFAULT '0' COMMENT '浏览时长（秒）',
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_created_at` (`created_at` DESC),
+  KEY `idx_user_product` (`user_id`,`product_id`),
+  KEY `idx_duration` (`duration_seconds` DESC),
+  CONSTRAINT `fk_view_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_view_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品浏览记录表（记录每次用户点击）';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -188,7 +266,9 @@ CREATE TABLE `products` (
   KEY `idx_recommended` (`is_recommended`),
   KEY `idx_main_category_id` (`main_category_id`),
   KEY `idx_sub_category_id` (`sub_category_id`),
-  KEY `idx_main_sub_category` (`main_category_id`,`sub_category_id`)
+  KEY `idx_main_sub_category` (`main_category_id`,`sub_category_id`),
+  KEY `idx_created_at` (`created_at` DESC),
+  KEY `idx_view_favorite` (`view_count` DESC,`favorite_count` DESC)
 ) ENGINE=InnoDB AUTO_INCREMENT=154 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -217,8 +297,16 @@ CREATE TABLE `users` (
   KEY `idx_openid` (`openid`),
   KEY `idx_phone` (`phone`),
   KEY `idx_city` (`city`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户信息表';
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping events for database 'songjia_textile'
+--
+
+--
+-- Dumping routines for database 'songjia_textile'
+--
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -229,4 +317,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-30 17:17:07
+-- Dump completed on 2026-01-04 10:56:10
